@@ -6,12 +6,14 @@ class UserController extends Controller {
     $json = getJson();
     $result = $this->model->signUp($json);
     if($result){
-      $loginUser = [
-        
-      ];
       $this->flash(_LOGINUSER, $result);
-      return [_RESULT => 1];
+      return [_RESULT => $result];
     }
     return [_RESULT => 0];
+  }
+
+  public function logout() {
+    $this->flash(_LOGINUSER);
+    return [_RESULT => 1];
   }
 }
