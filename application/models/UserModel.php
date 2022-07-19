@@ -27,6 +27,4 @@ class UserModel extends Model{
     $stmt->execute();
     return intval($this->pdo->lastInsertId());
   }
-
-  public function 
 }
