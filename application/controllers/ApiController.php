@@ -1,5 +1,6 @@
 <?php
 namespace application\controllers;
+use Exception;
 
 class ApiController extends Controller {
   public function categoryList() {
@@ -11,9 +12,27 @@ class ApiController extends Controller {
     return [_RESULT => $this->model->productInsert($json)];
   }
   
+  public function productList() {
+    $param = [];
+
+    if(isset($_GET["cate3"])) {
+        $cate3 = intval($_GET["cate3"]);
+        if($cate3 > 0) {
+            $param["cate3"] = $cate3;
+        }
+    } else {
+        if(isset($_GET["cate1"])) {
+            $param["cate1"] = $_GET["cate1"];
+        }
+        if(isset($_GET["cate2"])) {
+            $param["cate2"] = $_GET["cate2"];
+        }
+    }                 
+    return $this->model->productList($param);         
+  }
+
   public function productList2() {
-    $result = $this->model->productList2();
-    return $result === false ? [] : $result;
+    return $this->model->productList2();
   }
 
   public function productDetail() {
@@ -90,5 +109,58 @@ class ApiController extends Controller {
         break;
     }
     return [_RESULT => $result];
+  }
+
+  public function deleteProduct() {
+    $urlPaths = getUrlPaths();
+    if(!isset($urlPaths[2])) {
+      exit();
+    }
+    $productId = intval($urlPaths[2]);
+
+    try {
+      $param = [
+        "product_id" => $productId
+      ];
+      $this->model->beginTransaction();
+      $this->model->productImageDelete($param);
+      $result = $this->model->productDelete($param);
+      if($result === 1) {
+        //이미지 삭제
+        rmdirAll(_IMG_PATH . "/" . $productId);
+        $this->model->commit();
+      } else {
+        $this->model->rollback();    
+      }
+    } catch(Exception $e) {
+      $this->model->rollback();
+    }
+    
+    return [_RESULT => 1];
+  }
+
+  public function cate1List() {
+    return $this->model->cate1List();
+  }
+
+  public function cate2List() {
+    $urlPaths = getUrlPaths();
+    if(count($urlPaths) !== 3) {
+      exit();
+    }
+    $param = [ "cate1" => $urlPaths[2] ];
+    return $this->model->cate2List($param);
+  }
+
+  public function cate3List() {
+    $urlPaths = getUrlPaths();
+    if(count($urlPaths) !== 4) {
+      exit();
+    }
+    $param = [
+      "cate1" => $urlPaths[2],
+      "cate2" => $urlPaths[3]
+    ];
+    return $this->model->cate3List($param);
   }
 }
